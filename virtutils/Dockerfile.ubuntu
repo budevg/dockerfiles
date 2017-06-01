@@ -1,0 +1,31 @@
+FROM ubuntu:16.04 as base
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN set -x \
+    && apt-get update \
+    && echo 'APT::Install-Recommends "0";' > /etc/apt/apt.conf.d/55local
+
+#RUN set -x \
+#    && apt-get -y install wget xz-utils build-essential
+#RUN set -x \
+#    && wget http://download.qemu-project.org/qemu-2.9.0.tar.xz \
+#    && tar xvJf qemu-2.9.0.tar.xz \
+#    && cd qemu-2.9.0 \
+#    && ls \
+#    && ./configure \
+#    && make install
+#&& apt-get install -yq libguestfs-tools linux-image-generic
+
+RUN set -x \
+    && apt-get install -yq qemu-kvm qemu-utils libguestfs-tools linux-image-generic
+
+FROM base as centos-cache
+
+RUN set -x \
+    && apt-get install -y axel \
+    && mkdir -p /root/.cache/virt-builder \
+    && axel -an 10 http://libguestfs.org/download/builder/centos-7.3.xz -o /root/.cache/virt-builder/centos-7.3.x86_64.2
+
+FROM centos-cache
+
+ENV LIBGUESTFS_BACKEND=direct

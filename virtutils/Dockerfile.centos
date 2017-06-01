@@ -1,0 +1,18 @@
+FROM centos:7 as base
+
+RUN set -x \
+    && yum install -y qemu-kvm qemu-img libguestfs-tools-c
+
+RUN set -x \
+    && yum install -y epel-release \
+    && yum install -y axel
+
+FROM base as centos-cache
+
+RUN set -x \
+    && mkdir -p /root/.cache/virt-builder \
+    && axel -an 10 http://libguestfs.org/download/builder/centos-7.3.xz -o /root/.cache/virt-builder/centos-7.3.x86_64.2
+
+FROM centos-cache
+
+ENV LIBGUESTFS_BACKEND=direct
